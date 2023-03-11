@@ -23,7 +23,7 @@ func GetConnectionManagerSingleton() ConnectionManager {
 	return *connectionManager
 }
 
-func (cm ConnectionManager) GetConnection() *sql.DB {
+func (cm *ConnectionManager) GetConnection() *sql.DB {
 
 	if cm.openedConnection != nil {
 		return cm.openedConnection
@@ -34,7 +34,7 @@ func (cm ConnectionManager) GetConnection() *sql.DB {
 	return cm.openedConnection
 }
 
-func (cm ConnectionManager) CloseConnection() {
+func (cm *ConnectionManager) CloseConnection() {
 	if cm.openedConnection == nil {
 		return
 	}
