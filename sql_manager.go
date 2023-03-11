@@ -28,6 +28,18 @@ func (s SqlManager) CountGt(query string, countToCompare int) bool {
 	return count > countToCompare
 }
 
+func (s SqlManager) Count(query string) uint {
+	var count uint
+
+	err := s.connection.QueryRow(query).Scan(&count)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return count
+}
+
 func (s SqlManager) Exec(query string) {
 	_, err := s.connection.Exec(query)
 
