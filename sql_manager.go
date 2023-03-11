@@ -1,103 +1,105 @@
 package pgsql
 
 import (
-	"database/sql"
-	_ "github.com/lib/pq"
-	internal_sql "github.com/nsdash/pgsql-lib/connection/implementation"
+  "database/sql"
+  _ "github.com/lib/pq"
+  internal_sql "github.com/nsdash/pgsql-lib/connection/implementation"
 )
 
 type SqlManager struct {
-	connection *sql.DB
+  connection *sql.DB
 }
 
 func NewSqlManager() SqlManager {
-	connection := internal_sql.GetConnectionManagerSingleton().GetConnection()
+  connectionManager := internal_sql.GetConnectionManagerSingleton()
 
-	return SqlManager{connection: connection}
+  connection := connectionManager.GetConnection()
+
+  return SqlManager{connection: connection}
 }
 
 func (s SqlManager) CountGt(query string, countToCompare int) bool {
-	var count int
+  var count int
 
-	err := s.connection.QueryRow(query).Scan(&count)
+  err := s.connection.QueryRow(query).Scan(&count)
 
-	if err != nil {
-		panic(err)
-	}
+  if err != nil {
+    panic(err)
+  }
 
-	return count > countToCompare
+  return count > countToCompare
 }
 
 func (s SqlManager) Count(query string) uint {
-	var count uint
+  var count uint
 
-	err := s.connection.QueryRow(query).Scan(&count)
+  err := s.connection.QueryRow(query).Scan(&count)
 
-	if err != nil {
-		panic(err)
-	}
+  if err != nil {
+    panic(err)
+  }
 
-	return count
+  return count
 }
 
 func (s SqlManager) Exec(query string) {
-	_, err := s.connection.Exec(query)
+  _, err := s.connection.Exec(query)
 
-	if err != nil {
-		panic(err)
-	}
+  if err != nil {
+    panic(err)
+  }
 }
 
 func (s SqlManager) Query(query string) *sql.Rows {
-	rows, err := s.connection.Query(query)
+  rows, err := s.connection.Query(query)
 
-	if err != nil {
-		panic(err)
-	}
+  if err != nil {
+    panic(err)
+  }
 
-	return rows
+  return rows
 }
 
 func (s SqlManager) QueryRow(query string) *sql.Row {
-	row := s.connection.QueryRow(query)
+  row := s.connection.QueryRow(query)
 
-	return row
+  return row
 }
 
 func (s SqlManager) ExecTransaction(query string, transaction *sql.Tx) sql.Result {
-	result, err := transaction.Exec(query)
+  result, err := transaction.Exec(query)
 
-	if err != nil {
-		panic(err)
-	}
+  if err != nil {
+    panic(err)
+  }
 
-	return result
+  return result
 }
 
 func (s SqlManager) Transaction(callable func(transaction *sql.Tx)) {
-	transaction, err := s.connection.Begin()
+  transaction, err := s.connection.Begin()
 
-	if err != nil {
-		panic("Transaction failed: " + err.Error())
-	}
+  if err != nil {
+    panic("Transaction failed: " + err.Error())
+  }
 
-	defer func() {
-		if err := recover(); err != nil {
-			err := transaction.Rollback()
+  defer func() {
+    if err := recover(); err != nil {
+      err := transaction.Rollback()
 
-			if err != nil {
-				panic("Failed rollback transaction: " + err.Error())
-			}
+      if err != nil {
+        panic("Failed rollback transaction: " + err.Error())
+      }
 
-			panic("Transaction failed")
-		}
-	}()
+      panic("Transaction failed")
+    }
+  }()
 
-	callable(transaction)
+  callable(transaction)
 
-	err = transaction.Commit()
+  err = transaction.Commit()
 
-	if err != nil {
-		panic("Transaction failed: " + err.Error())
-	}
+  if err != nil {
+    panic("Transaction failed: " + err.Error())
+  }
 }
